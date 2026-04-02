@@ -1,0 +1,11 @@
+[package]
+name = "markov_chain"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy = "0.18.1"
+bevy_ratatui = "0.11.1"
+clap = {version = "4.6.0", features= ["derive"]}
+rand = "0.10.0"
+ratatui = "0.30.0"
