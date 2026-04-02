@@ -1,4 +1,4 @@
-use crate::markov::MarkovChain;
+use crate::{markov::MarkovChain, sim::SimPlugin};
 use bevy::prelude::*;
 use bevy_ratatui::RatatuiPlugins;
 use clap::Parser;
@@ -23,7 +23,11 @@ fn main() {
     let mut app = App::new();
 
     app.insert_resource(mc);
-    app.add_plugins((DefaultPlugins, RatatuiPlugins::default()));
+    app.add_plugins((
+        DefaultPlugins,
+        //RatatuiPlugins::default(),
+        SimPlugin,
+    ));
 
     app.run();
 }

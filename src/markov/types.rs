@@ -16,11 +16,9 @@ impl MarkovChain {
     pub fn new(words: HashSet<String>, transitions: Vec<f32>) -> MarkovChain {
         let mut i = HashMap::new();
         let mut y = HashMap::new();
-        let mut r = 0_usize;
-        for word in &words {
+        for (r, word) in words.iter().enumerate() {
             i.insert(word.clone(), r);
             y.insert(r, word.clone());
-            r += 1;
         }
         MarkovChain {
             words,
@@ -79,30 +77,14 @@ impl MarkovChain {
     pub fn i_word(&self, i: usize) -> Option<&String> {
         self.index_word.get(&i)
     }
-}
 
-fn multiply_matrix_vector(matrix: &Vec<f32>, vector: &Vec<f32>) -> Vec<f32> {
-    // Result will be a vector of size N
-    let n = vector.len();
-    let mut result = Vec::with_capacity(n);
+    pub fn transition_from_x_to_y(&self, x: &String, y: &String) -> Option<f32> {
+        let x_i = self.word_i(x)?;
+        let y_i = self.word_i(y)?;
 
-    // Iterate through each row of the NxN matrix
-    for row_idx in 0..n {
-        let start = row_idx * n;
-        let end = start + n;
-        let row = &matrix[start..end];
-
-        // Compute the dot product of the row and the column vector
-        let dot_product: f32 = row
-            .iter()
-            .zip(vector.iter())
-            .map(|(m_val, v_val)| m_val * v_val)
-            .sum();
-
-        result.push(dot_product);
+        let index = x_i * self.words.len() + y_i;
+        Some(self.transitions[index])
     }
-
-    result
 }
 
 fn sample_index(probs: &[f32]) -> usize {
@@ -119,56 +101,6 @@ fn sample_index(probs: &[f32]) -> usize {
 
     // Fallback for rounding errors (e.g., if sum was 0.99999)
     probs.len() - 1
-}
-
-fn multiply_matrices(
-    a: &Vec<f32>,
-    shape_a: (usize, usize),
-    b: &Vec<f32>,
-    shape_b: (usize, usize),
-) -> Result<(Vec<f32>, (usize, usize)), String> {
-    let (rows_a, cols_a) = shape_a;
-    let (rows_b, cols_b) = shape_b;
-
-    // Matrix multiplication requirement: inner dimensions must match
-    if cols_a != rows_b {
-        return Err(format!(
-            "Dimension mismatch: Cannot multiply {}x{} by {}x{}",
-            rows_a, cols_a, rows_b, cols_b
-        ));
-    }
-
-    let mut result = vec![0.0; rows_a * cols_b];
-
-    for i in 0..rows_a {
-        for j in 0..cols_b {
-            let mut sum = 0.0;
-            for k in 0..cols_a {
-                // a[i, k] * b[k, j]
-                let a_val = a[i * cols_a + k];
-                let b_val = b[k * cols_b + j];
-                sum += a_val * b_val;
-            }
-            result[i * cols_b + j] = sum;
-        }
-    }
-
-    Ok((result, (rows_a, cols_b)))
-}
-
-fn count_occurrences<T>(vec: Vec<T>) -> HashMap<T, usize>
-where
-    T: std::hash::Hash + Eq,
-{
-    let mut counts = HashMap::new();
-
-    for item in vec {
-        // The entry API handles checking if the key exists
-        // .or_insert(0) returns a mutable reference to the value
-        *counts.entry(item).or_insert(0) += 1;
-    }
-
-    counts
 }
 
 fn get_transition_matrix(
